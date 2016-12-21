@@ -53,15 +53,17 @@ class AllFunctionalTest extends TestCase
         }
     }
 
+    /** TestCase garbage collector
+    */
+    private static $testCaseGc;
+
     public static function setUpBeforeClass()
     {
-        self::$pharPath = self::getUniqueTmpDirectory() . '/composer.phar';
-    }
+        if (!isset(self::$testCaseGc)) {
+            self::$testCaseGc = new self();
+        }
 
-    public static function tearDownAfterClass()
-    {
-        $fs = new Filesystem;
-        $fs->removeDirectory(dirname(self::$pharPath));
+        self::$pharPath = self::$testCaseGc->getUniqueTmpDirectory() . '/composer.phar';
     }
 
     public function testBuildPhar()

@@ -37,22 +37,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function __call($name, $arguments)
-    {
-        if ($name === 'getUniqueTmpDirectory') {
-            $this->tmpobjects[] = $result = call_user_func_array(__CLASS__ . "::$name", $arguments);
-            return $result;
-        } else {
-            return call_user_func_array(__CLASS__ . "::$name", $arguments);
-        }
-    }
-
-    public static function __callStatic($name, $arguments)
-    {
-        return call_user_func_array(__CLASS__ . "::$name", $arguments);
-    }
-
-    private static function getUniqueTmpDirectory()
+    public function getUniqueTmpDirectory()
     {
         $attempts = 5;
         $root = sys_get_temp_dir();
@@ -61,7 +46,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $unique = $root . DIRECTORY_SEPARATOR . uniqid('composer-test-' . rand(1000, 9000));
 
             if (!file_exists($unique) && Silencer::call('mkdir', $unique, 0777)) {
-                return realpath($unique);
+                $this->tmpobjects[] = $result = realpath($unique);
+                return $result;
             }
         } while (--$attempts);
 
