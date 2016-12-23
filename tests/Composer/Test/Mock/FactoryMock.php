@@ -18,16 +18,24 @@ use Composer\Repository\RepositoryManager;
 use Composer\Repository\WritableRepositoryInterface;
 use Composer\Installer;
 use Composer\IO\IOInterface;
-use Composer\TestCase;
+use Composer\Test\TestCaseGC;
 
 class FactoryMock extends Factory
 {
+    /** TestCase garbage collector
+    */
+    private static $testCaseGc;
+
     public static function createConfig(IOInterface $io = null, $cwd = null)
     {
+        if (!isset(self::$testCaseGc)) {
+            self::$testCaseGc = new TestCaseGC();
+        }
+
         $config = new Config(true, $cwd);
 
         $config->merge(array(
-            'config' => array('home' => TestCase::getUniqueTmpDirectory()),
+            'config' => array('home' => self::$testCaseGc->getUniqueTmpDirectory()),
             'repositories' => array('packagist' => false),
         ));
 

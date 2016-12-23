@@ -24,7 +24,22 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     private static $parser;
     private static $executableCache = array();
 
-    public static function getUniqueTmpDirectory()
+    /** All temporary objects holding
+    * @var array
+    */
+    private $tmpobjects = array();
+
+    public function __destruct()
+    {
+        $fs = new Filesystem();
+        foreach ($this->tmpobjects as $object) {
+            if (is_dir($object)) {
+                $fs->removeDirectory($object);
+            }
+        }
+    }
+
+    public function getUniqueTmpDirectory()
     {
         $attempts = 5;
         $root = sys_get_temp_dir();
@@ -33,7 +48,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $unique = $root . DIRECTORY_SEPARATOR . uniqid('composer-test-' . rand(1000, 9000));
 
             if (!file_exists($unique) && Silencer::call('mkdir', $unique, 0777)) {
-                return realpath($unique);
+                $result = realpath($unique);
+                $this->tmpobjects[] = $result;
+                return $result;
             }
         } while (--$attempts);
 
